@@ -14,39 +14,31 @@ STATUS_API_URL = "https://isthestraitclosed.com/api/status"
 class StatusDetails(TypedDict):
     label: str
     sublabel: str
-    pulse: str
 
 
 STATUS_MAP: dict[str, StatusDetails] = {
     "CLOSED": {
         "label": "YES",
         "sublabel": "The Strait of Hormuz is effectively closed",
-        "pulse": "pulse-red",
     },
     "DISPUTED": {
         "label": "EFFECTIVELY, YES",
         "sublabel": "Iran has announced closure — most shipping is avoiding the strait",
-        "pulse": "pulse-yellow",
     },
     "THREATENED": {
         "label": "NOT YET",
         "sublabel": "Tensions are elevated but the strait remains open to most traffic",
-        "pulse": "pulse-yellow",
     },
     "OPEN": {
         "label": "NO",
         "sublabel": "The Strait of Hormuz is open for transit",
-        "pulse": "pulse-green",
     },
 }
 
 DEFAULT_STATUS: StatusDetails = {
     "label": "UNKNOWN",
     "sublabel": "Kitti couldn't confidently determine the strait status right meow.",
-    "pulse": "pulse-yellow",
 }
-
-STATUS_TO_ANSI = {"pulse-red": "31", "pulse-yellow": "33", "pulse-green": "32"}
 
 LOADING_MESSAGES = [
     "Kitti is sniffing for the oil... 🐾",
@@ -61,9 +53,7 @@ def _clean_summary(summary: str) -> str:
 
 def _format_response(status: str, summary: str) -> str:
     status_details = STATUS_MAP.get(status, DEFAULT_STATUS)
-    color = STATUS_TO_ANSI.get(status_details["pulse"], "33")
-    colored_label = f"```ansi\n\u001b[1;{color}m{status_details['label']}\u001b[0m\n```"
-    return f"{colored_label}\n{status_details['sublabel']}\n{summary}"
+    return f"{status_details['label']}\n{status_details['sublabel']}\n{summary}"
 
 
 @plugin.command

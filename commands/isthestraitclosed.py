@@ -74,13 +74,10 @@ def _format_response(status: str, summary: str) -> str:
 @lightbulb.implements(lightbulb.SlashCommand)
 async def main(ctx: lightbulb.Context) -> None:
     await ctx.respond(random.choice(LOADING_MESSAGES))
-
-    if plugin.bot is None:
-        await ctx.edit_last_response("Kitti lost signal before checking the strait.")
-        return
+    bot = plugin.bot
 
     try:
-        async with plugin.bot.d.aio_session.get(
+        async with bot.d.aio_session.get(
             STATUS_API_URL, timeout=aiohttp.ClientTimeout(total=10)
         ) as response:
             if response.status != 200:

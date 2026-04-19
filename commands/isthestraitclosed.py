@@ -65,9 +65,15 @@ def _format_response(status: str, summary: str) -> str:
 async def main(ctx: lightbulb.Context) -> None:
     await ctx.respond(random.choice(LOADING_MESSAGES))
     bot = plugin.bot
+    session = getattr(bot.d, "aio_session", None)
+    if not isinstance(session, aiohttp.ClientSession) or session.closed:
+        await ctx.edit_last_response(
+            "Kitti can't reach the maritime scanners right meow. Try again in a bit."
+        )
+        return
 
     try:
-        async with bot.d.aio_session.get(
+        async with session.get(
             STATUS_API_URL, timeout=aiohttp.ClientTimeout(total=10)
         ) as response:
             if response.status != 200:

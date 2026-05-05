@@ -100,6 +100,8 @@ def _parse_table(table: BeautifulSoup) -> list[CashRateEntry]:
                 row_date = _parse_table_date(text)
             if row_rate is None:
                 row_rate = _parse_rate(text)
+            if row_date and row_rate:
+                break
         if row_date and row_rate:
             entries.append(CashRateEntry(row_date, row_rate))
     return entries
@@ -255,7 +257,7 @@ async def main(ctx: lightbulb.Context) -> None:
         )
         return
 
-    changes_since = _count_changes_since(entries, entry.date)
+    changes_since = _count_changes_since(entries, parsed_date)
     await ctx.edit_last_response(
         _format_history(entry, parsed_date, today, changes_since)
     )

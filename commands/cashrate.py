@@ -1,6 +1,7 @@
 import asyncio
 import random
 import re
+from calendar import monthrange
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from typing import Iterable
@@ -8,11 +9,6 @@ from typing import Iterable
 import aiohttp
 from bs4 import BeautifulSoup
 import lightbulb
-
-try:
-    from dateutil.relativedelta import relativedelta
-except ImportError:  # pragma: no cover - fallback when python-dateutil is unavailable
-    relativedelta = None
 
 plugin = lightbulb.Plugin("CashRate")
 
@@ -132,18 +128,24 @@ def _normalize_entries(entries: Iterable[CashRateEntry]) -> list[CashRateEntry]:
 
 
 def _format_relative_period(start: date, end: date) -> str:
-    if relativedelta is None:
-        days = (end - start).days
-        day_label = "day" if days == 1 else "days"
-        return f"{days} {day_label}"
-    delta = relativedelta(end, start)
     parts: list[str] = []
-    if delta.years:
-        parts.append(f"{delta.years} year{'s' if delta.years != 1 else ''}")
-    if delta.months:
-        parts.append(f"{delta.months} month{'s' if delta.months != 1 else ''}")
-    if delta.days or not parts:
-        parts.append(f"{delta.days} day{'s' if delta.days != 1 else ''}")
+    years = end.year - start.year
+    months = end.month - start.month
+    days = end.day - start.day
+    if days < 0:
+        prev_month = end.month - 1 or 12
+        prev_year = end.year if end.month > 1 else end.year - 1
+        days += monthrange(prev_year, prev_month)[1]
+        months -= 1
+    if months < 0:
+        months += 12
+        years -= 1
+    if years:
+        parts.append(f"{years} year{'s' if years != 1 else ''}")
+    if months:
+        parts.append(f"{months} month{'s' if months != 1 else ''}")
+    if days or not parts:
+        parts.append(f"{days} day{'s' if days != 1 else ''}")
     return " ".join(parts)
 
 

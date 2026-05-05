@@ -4,10 +4,11 @@ import re
 from calendar import monthrange
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
-from typing import Iterable
+from typing import Iterable, cast
 
 import aiohttp
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 import lightbulb
 
 plugin = lightbulb.Plugin("CashRate")
@@ -87,10 +88,10 @@ def _parse_user_date(value: str) -> date | None:
     return None
 
 
-def _parse_table(table: BeautifulSoup) -> list[CashRateEntry]:
+def _parse_table(table: Tag) -> list[CashRateEntry]:
     entries: list[CashRateEntry] = []
-    for row in table.find_all("tr"):
-        cells = row.find_all(["th", "td"])
+    for row in cast(list[Tag], table.find_all("tr")):
+        cells = cast(list[Tag], row.find_all(["th", "td"]))
         if len(cells) < 2:
             continue
         texts = [cell.get_text(" ", strip=True) for cell in cells]
@@ -110,12 +111,13 @@ def _parse_table(table: BeautifulSoup) -> list[CashRateEntry]:
 
 def _find_cash_rate_entries(soup: BeautifulSoup) -> list[CashRateEntry]:
     candidates: list[list[CashRateEntry]] = []
-    for table in soup.find_all("table"):
+    for table in cast(list[Tag], soup.find_all("table")):
         entries = _parse_table(table)
         if not entries:
             continue
+        header_cells = cast(list[Tag], table.find_all("th"))
         header_text = " ".join(
-            cell.get_text(" ", strip=True).lower() for cell in table.find_all("th")
+            cell.get_text(" ", strip=True).lower() for cell in header_cells
         )
         if "cash rate" in header_text or "target" in header_text:
             return entries

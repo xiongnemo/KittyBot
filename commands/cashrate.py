@@ -4,7 +4,7 @@ import re
 from calendar import monthrange
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
-from typing import Iterable, cast
+from typing import Iterable
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -88,10 +88,14 @@ def _parse_user_date(value: str) -> date | None:
     return None
 
 
+def _tag_list(elements: Iterable[object]) -> list[Tag]:
+    return [element for element in elements if isinstance(element, Tag)]
+
+
 def _parse_table(table: Tag) -> list[CashRateEntry]:
     entries: list[CashRateEntry] = []
-    for row in cast(list[Tag], table.find_all("tr")):
-        cells = cast(list[Tag], row.find_all(["th", "td"]))
+    for row in _tag_list(table.find_all("tr")):
+        cells = _tag_list(row.find_all(["th", "td"]))
         if len(cells) < 2:
             continue
         texts = [cell.get_text(" ", strip=True) for cell in cells]
@@ -111,11 +115,11 @@ def _parse_table(table: Tag) -> list[CashRateEntry]:
 
 def _find_cash_rate_entries(soup: BeautifulSoup) -> list[CashRateEntry]:
     candidates: list[list[CashRateEntry]] = []
-    for table in cast(list[Tag], soup.find_all("table")):
+    for table in _tag_list(soup.find_all("table")):
         entries = _parse_table(table)
         if not entries:
             continue
-        header_cells = cast(list[Tag], table.find_all("th"))
+        header_cells = _tag_list(table.find_all("th"))
         header_text = " ".join(
             cell.get_text(" ", strip=True).lower() for cell in header_cells
         )

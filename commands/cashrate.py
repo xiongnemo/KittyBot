@@ -50,10 +50,13 @@ class CashRateEntry:
 
 
 def _parse_rate(value: str) -> str | None:
-    match = re.search(r"\d+(?:\.\d+)?", value)
+    match = re.search(r"\b(\d+(?:\.\d+)?)\s*%?", value)
     if not match:
         return None
-    return f"{match.group(0)}%"
+    rate = float(match.group(1))
+    if rate > 50:
+        return None
+    return f"{match.group(1)}%"
 
 
 def _parse_table_date(value: str) -> date | None:
@@ -133,8 +136,8 @@ def _format_relative_period(start: date, end: date) -> str:
     months = end.month - start.month
     days = end.day - start.day
     if days < 0:
-        prev_month = end.month - 1 or 12
-        prev_year = end.year if end.month > 1 else end.year - 1
+        prev_month = 12 if end.month == 1 else end.month - 1
+        prev_year = end.year - 1 if end.month == 1 else end.year
         days += monthrange(prev_year, prev_month)[1]
         months -= 1
     if months < 0:

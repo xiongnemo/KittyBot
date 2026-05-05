@@ -13,6 +13,8 @@ import lightbulb
 plugin = lightbulb.Plugin("CashRate")
 
 CASH_RATE_URL = "https://www.rba.gov.au/statistics/cash-rate/"
+# Cash rate values are small percentages; this filters out years or other large numbers.
+MAX_REASONABLE_RATE = 50.0
 
 LOADING_MESSAGES = [
     "Kitti is pawing through the RBA scrolls... 🐾",
@@ -54,7 +56,7 @@ def _parse_rate(value: str) -> str | None:
     if not match:
         return None
     rate = float(match.group(1))
-    if rate > 50:
+    if rate > MAX_REASONABLE_RATE:
         return None
     return f"{match.group(1)}%"
 

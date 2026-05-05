@@ -155,7 +155,7 @@ def _format_relative_period(start: date, end: date) -> str:
 
 
 def _count_changes_since(entries: list[CashRateEntry], since: date) -> int:
-    return sum(1 for entry in entries if entry.date > since)
+    return sum(1 for entry in entries if entry.date >= since)
 
 
 def _find_rate_for_date(

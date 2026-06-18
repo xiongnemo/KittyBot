@@ -8,7 +8,7 @@ import lightbulb
 
 plugin = lightbulb.Plugin("IsTheStraitClosed")
 
-STATUS_API_URL = "https://isthestraitclosed.com/api/status"
+STATUS_API_URL = "https://hormuzstraitmonitor.com/api/dashboard"
 
 
 class StatusDetails(TypedDict):
@@ -18,25 +18,29 @@ class StatusDetails(TypedDict):
 
 STATUS_MAP: dict[str, StatusDetails] = {
     "CLOSED": {
-        "label": "YES",
+        "label": "\u001b[1;31mYES\u001b[0m",
         "sublabel": "The Strait of Hormuz is effectively closed",
     },
+    "RESTRICTED": {
+        "label": "\u001b[1;33mRESTRICTED\u001b[0m",
+        "sublabel": "Tensions are elevated and shipping is restricted",
+    },
     "DISPUTED": {
-        "label": "EFFECTIVELY, YES",
+        "label": "\u001b[1;33mEFFECTIVELY, YES\u001b[0m",
         "sublabel": "Iran has announced closure — most shipping is avoiding the strait",
     },
     "THREATENED": {
-        "label": "NOT YET",
+        "label": "\u001b[1;33mNOT YET\u001b[0m",
         "sublabel": "Tensions are elevated but the strait remains open to most traffic",
     },
     "OPEN": {
-        "label": "NO",
+        "label": "\u001b[1;32mNO\u001b[0m",
         "sublabel": "The Strait of Hormuz is open for transit",
     },
 }
 
 DEFAULT_STATUS: StatusDetails = {
-    "label": "UNKNOWN",
+    "label": "\u001b[1;30mUNKNOWN\u001b[0m",
     "sublabel": "Kitti couldn't confidently determine the strait status right meow.",
 }
 
@@ -53,7 +57,7 @@ def _clean_summary(summary: str) -> str:
 
 def _format_response(status: str, summary: str) -> str:
     status_details = STATUS_MAP.get(status, DEFAULT_STATUS)
-    return f"{status_details['label']}\n{status_details['sublabel']}\n{summary}"
+    return f"```ansi\n{status_details['label']}\n{status_details['sublabel']}\n{summary}\n```"
 
 
 @plugin.command
@@ -88,8 +92,9 @@ async def main(ctx: lightbulb.Context) -> None:
         )
         return
 
-    status = str(payload.get("status", "")).upper()
-    raw_summary = payload.get("summary")
+    strait_status = payload.get("data", {}).get("straitStatus", {})
+    status = str(strait_status.get("status", "")).upper()
+    raw_summary = strait_status.get("description")
     summary = (
         _clean_summary(raw_summary)
         if isinstance(raw_summary, str) and raw_summary.strip()

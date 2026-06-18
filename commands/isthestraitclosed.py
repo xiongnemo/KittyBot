@@ -40,7 +40,7 @@ STATUS_MAP: dict[str, StatusDetails] = {
 }
 
 DEFAULT_STATUS: StatusDetails = {
-    "label": "\u001b[1;30mUNKNOWN\u001b[0m",
+    "label": "\u001b[0mUNKNOWN\u001b[0m",
     "sublabel": "Kitti couldn't confidently determine the strait status right meow.",
 }
 
